@@ -26,3 +26,49 @@ This repository demonstrates a tiny reproducible MLOps flow:
     python src/app.py
    Then test:
     curl -X POST "http://127.0.0.1:5000/predict" -H "Content-Type: application/json" -d '{"features":[5.1,3.5,1.4,0.2]}'
+
+## Docker Setup, Build & Troubleshooting Guide
+
+### 1. Build the Docker Image
+
+Build using modern BuildKit syntax:
+
+```bash
+DOCKER_BUILDKIT=1 docker build -t hello-mlops:latest .
+
+Ensure a .dockerignore file exists in the root to keep build context small and fast:
+
+Plaintext
+.git
+.github
+__pycache__
+*.pyc
+.venv/
+venv/
+*.egg-info
+.pytest_cache
+
+3. Troubleshooting & Common Fixes
+Issue A: Temporary failure in name resolution during pip install (WSL2 DNS Issue)
+Diagnosis:
+Verify container DNS resolution and reachability:
+
+Bash
+docker run --rm alpine nslookup pypi.org
+docker run --rm alpine cat /etc/resolv.conf
+
+Fix Option 3 (Static DNS in WSL Ubuntu):
+If using standard legacy NAT, disable auto-generation in /etc/wsl.conf:
+
+Ini, TOML
+[network]
+generateResolvConf = false
+Then set static nameservers:
+
+Bash
+sudo rm -f /etc/resolv.conf
+sudo bash -c 'cat << EOF > /etc/resolv.conf
+nameserver 1.1.1.1
+nameserver 8.8.8.8
+EOF'
+
